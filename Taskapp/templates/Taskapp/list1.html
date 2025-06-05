@@ -54,13 +54,10 @@
     <div class="mb-4">
         <a href="{% url 'import_sales_data' %}" class="btn btn-primary me-2">Import Csv File</a>
         <a href="{% url 'sales_add' %}" class="btn btn-success me-2">Add New Record</a>
-        <a href="?download=1{% if request.GET.region %}&region={{ request.GET.region }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}{% if request.GET.item_type %}&item_type={{ request.GET.item_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="btn btn-outline-secondary">
-    Download CSV
-</a>
-
+        <a href="{% url 'sales_download' %}" class="btn btn-outline-secondary">Download CSV</a>
     </div>
 
-
+    <!-- Sales Table -->
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
@@ -114,6 +111,7 @@
         </table>
     </div>
 
+    <!-- Pagination -->
     <nav>
         <ul class="pagination justify-content-center">
 
@@ -164,7 +162,7 @@
         </form>
     </nav>
 
-   
+    <!-- AJAX Script to update countries on region select -->
     <script>
         $('#region-select').change(function () {
             const selectedRegion = $(this).val();
@@ -174,7 +172,7 @@
                 success: function (data) {
                     const countrySelect = $('#country-select');
                     countrySelect.empty();
-                    countrySelect.append('<option value="">All</option>');
+                    countrySelect.append('<option value="">All Countries</option>');
                     data.countries.forEach(function (country) {
                         countrySelect.append('<option value="' + country + '">' + country + '</option>');
                     });

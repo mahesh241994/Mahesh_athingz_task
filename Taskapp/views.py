@@ -6,15 +6,11 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from .forms import SalesRecordForm
 from datetime import datetime
+from django.http import JsonResponse
 
 def sales_list(request):
-    records = SalesRecord.objects.all()
-    for i in records:
-        if i.id ==3:
-            print(i.order_date)
-            print(i.ship_date)
-            break
     
+    records = SalesRecord.objects.all()
 
     region = request.GET.get('region')
     country = request.GET.get('country')
@@ -31,31 +27,80 @@ def sales_list(request):
         records = records.filter(
             Q(order_id__icontains=search) |
             Q(country__icontains=search) |
-            Q(item_type__icontains=search)|
+            Q(item_type__icontains=search) |
             Q(region__icontains=search) |
-            Q(sales_channel__icontains=search)|
-            Q(order_priority__icontains=search)|
-            Q(order_date__icontains=search)|
-            Q(ship_date__icontains=search)|
-            Q(units_sold__icontains=search)|
-            Q(unit_price__icontains=search)|
+            Q(sales_channel__icontains=search) |
+            Q(order_priority__icontains=search) |
+            Q(order_date__icontains=search) |
+            Q(ship_date__icontains=search) |
+            Q(units_sold__icontains=search) |
+            Q(unit_price__icontains=search) |
             Q(total_profit__icontains=search)
         )
+
+    if request.GET.get('download') == '1':
+        return download_sales_csv(records)
 
     paginator = Paginator(records, 500)
     page = request.GET.get('page')
     page_obj = paginator.get_page(page)
-    # print(page_obj)
-    # print(page_obj.object_list)
+
+    if region:
+        countries = SalesRecord.objects.filter(region=region).values_list('country', flat=True).distinct()
+    else:
+        countries = SalesRecord.objects.values_list('country', flat=True).distinct()
 
     context = {
         'page_obj': page_obj,
         'regions': SalesRecord.objects.values_list('region', flat=True).distinct(),
-        'countries': SalesRecord.objects.values_list('country', flat=True).distinct(),
+        'countries': countries,
         'item_types': SalesRecord.objects.values_list('item_type', flat=True).distinct(),
     }
     return render(request, 'Taskapp/sales_list.html', context)
-    # return render(request, 'Taskapp/list1.html', context)
+
+def get_countries(request):
+    region = request.GET.get('region')
+    countries = []
+    if region:
+        countries = SalesRecord.objects.filter(region=region).values_list('country', flat=True).distinct()
+    return JsonResponse({'countries': list(countries)})
+
+def download_sales_csv(filtered_records):
+    response = HttpResponse(content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="sales_records.csv"'
+    data = csv.writer(response)
+
+    data.writerow([
+        'Sl No', 'Region', 'Country', 'Item Type', 'Sales Channel',
+        'Order Priority', 'Order Date', 'Order ID', 'Ship Date',
+        'Units Sold', 'Unit Price', 'Unit Cost', 'Total Revenue',
+        'Total Cost', 'Total Profit'
+    ])
+
+    for record in filtered_records:
+        order_date = f'="{record.order_date.strftime("%d/%m/%Y")}"'
+        ship_date = f'="{record.ship_date.strftime("%d/%m/%Y")}"'
+        order_id = f'="{str(record.order_id)}"'
+
+        data.writerow([
+            record.id,
+            record.region,
+            record.country,
+            record.item_type,
+            record.sales_channel,
+            record.order_priority,
+            order_date,
+            order_id,
+            ship_date,
+            record.units_sold,
+            record.unit_price,
+            record.unit_cost,
+            record.total_revenue,
+            record.total_cost,
+            record.total_profit
+        ])
+
+    return response
 
 def sales_add(request):
     if request.method == 'POST':
@@ -76,43 +121,7 @@ def sales_edit(request, pk):
             return redirect('sales_list')
     else:
         form = SalesRecordForm(instance=record)
-    return render(request, 'Taskapp/sales_edit.html', {'form': form, 'record': record})
-
-def Download_sales_csv(request):
-    response = HttpResponse(content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="sales_records.csv"'
-    data = csv.writer(response)
-
-    data.writerow([
-        'Sl No', 'Region', 'Country', 'Item Type', 'Sales Channel',
-        'Order Priority', 'Order Date', 'Order ID', 'Ship Date',
-        'Units Sold', 'Unit Price', 'Unit Cost', 'Total Revenue',
-        'Total Cost', 'Total Profit'
-    ])
-
-    for record in SalesRecord.objects.all():
-        order_date = f'="{record.order_date.strftime("%d/%m/%Y")}"'
-        ship_date = f'="{record.ship_date.strftime("%d/%m/%Y")}"'
-
-        data.writerow([
-            record.id,
-            record.region,
-            record.country,
-            record.item_type,
-            record.sales_channel,
-            record.order_priority,
-            order_date,
-            record.order_id,
-            ship_date,
-            record.units_sold,
-            record.unit_price,
-            record.unit_cost,
-            record.total_revenue,
-            record.total_cost,
-            record.total_profit
-        ])
-
-    return response
+    return render(request, 'Taskapp/sale_edit.html', {'form': form, 'record': record})
 
 def clean_date(date_str):
     """Cleans and parses date strings like ='31/08/2015'."""
@@ -146,9 +155,17 @@ def import_sales_csv(request):
                     total_cost=float(row['Total Cost']),
                     total_profit=float(row['Total Profit']),
                 )
+                return redirect('sales_list')
             return render(request, 'Taskapp/import_csv.html', {'message': 'CSV file uploaded successfully!'})
 
         except Exception as e:
             return render(request, 'Taskapp/import_csv.html', {'error': f'Error processing file: {e}'})
 
     return render(request, 'Taskapp/import_csv.html')
+
+
+
+
+
+
+
