@@ -190,15 +190,14 @@
 function deleteRecord(id) {
     if (confirm("Are you sure you want to delete this record?")) {
         $.ajax({
-            url: `/delete/${id}/`,  // This must match the path in urls.py
+            url: `/delete/${id}/`,
             type: 'POST',
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function (response) {
                 alert("Record deleted successfully!");
-                location.reload();  // Or remove the element from the DOM
-            },
+                location.reload(); 
             error: function (xhr, status, error) {
                 alert("Error deleting record: " + xhr.statusText);
                 console.error(xhr.responseText);
