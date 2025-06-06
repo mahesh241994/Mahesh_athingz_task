@@ -7,7 +7,7 @@ class SalesRecord(models.Model):
     sales_channel = models.CharField(max_length=50)
     order_priority = models.CharField(max_length=1)
     order_date = models.DateField()
-    order_id = models.IntegerField(max_length=20, unique=True)
+    order_id = models.IntegerField(unique=True)
     ship_date = models.DateField()
     units_sold = models.IntegerField()
     unit_price = models.FloatField()

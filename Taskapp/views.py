@@ -10,7 +10,7 @@ from django.http import JsonResponse
 
 def sales_list(request):
     
-    records = SalesRecord.objects.all()
+    records = SalesRecord.objects.exclude(Q(country__icontains = 'India'))
 
     region = request.GET.get('region')
     country = request.GET.get('country')
@@ -64,6 +64,32 @@ def get_countries(request):
     if region:
         countries = SalesRecord.objects.filter(region=region).values_list('country', flat=True).distinct()
     return JsonResponse({'countries': list(countries)})
+
+def get_deleted_records(request,pk):
+    record = get_object_or_404(SalesRecord, pk=pk)
+    # record = SalesRecord.objects.get(id=pk)
+    if request.method == 'POST':
+        record.delete()
+        return redirect('sales_list')
+    return JsonResponse({
+        'id': record.id,
+        'region': record.region,
+        'country': record.country,
+        'item_type': record.item_type,
+        'sales_channel': record.sales_channel,
+        'order_priority': record.order_priority,
+        'order_date': record.order_date.strftime("%d/%m/%Y"),
+        'order_id': record.order_id,
+        'ship_date': record.ship_date.strftime("%d/%m/%Y"),
+        'units_sold': record.units_sold,
+        'unit_price': record.unit_price,
+        'unit_cost': record.unit_cost,
+        'total_revenue': record.total_revenue,
+        'total_cost': record.total_cost,
+        'total_profit': record.total_profit
+    })
+
+
 
 def download_sales_csv(filtered_records):
     response = HttpResponse(content_type="text/csv")
