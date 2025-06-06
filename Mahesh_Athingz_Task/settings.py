@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-q&bqiww(-w!217=)+6o4oj#@$u_lkfw^i$*#9^n96nnypxy!k7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['54.211.252.74','*']
 
 
 # Application definition
@@ -74,15 +74,14 @@ WSGI_APPLICATION = 'Mahesh_Athingz_Task.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': BASE_DIR / 'db.sqlite3',
+     }
+}
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-password = config('DB_PASSWORD')
+'''password = config('DB_PASSWORD')
 user = 'root'
 DATABASES = {
     'default': {
@@ -93,7 +92,7 @@ DATABASES = {
         'HOST': "127.0.0.1", 
         'PORT': '3306',
     }
-}
+}'''
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

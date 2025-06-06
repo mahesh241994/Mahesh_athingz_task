@@ -155,8 +155,8 @@ def import_sales_csv(request):
                     total_cost=float(row['Total Cost']),
                     total_profit=float(row['Total Profit']),
                 )
-                return redirect('sales_list')
-            return render(request, 'Taskapp/import_csv.html', {'message': 'CSV file uploaded successfully!'})
+            return redirect('sales_list')
+           # return render(request, 'Taskapp/import_csv.html', {'message': 'CSV file uploaded successfully!'})
 
         except Exception as e:
             return render(request, 'Taskapp/import_csv.html', {'error': f'Error processing file: {e}'})
